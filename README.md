@@ -6,7 +6,7 @@ Quickly share any media to Imgur via a shell script — keeping you as anonymous
 
 - Removes metadata
 - Tracks all uploaded media 
-- Prevents clients data leaks
+- Prevents clients' data leaks
 - Pastes to a clipboard
 
 ## Requirements
