@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+image=iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKAQMAAAC3/F3+AAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAANQTFRF/wAAGeIJNwAAAA1JREFUeJxjZGBgxI0AAMMAC8ggFq0AAAAASUVORK5CYII=
+
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+qs="${dir}/qs"
+
+G='\033[0;32m'
+R='\033[0;31m'
+E='\033[0m'
+
+success() {
+  local test_name
+  test_name="$1"
+
+  echo -e "${G}Test ${test_name} passed${E}"
+}
+
+failure() {
+  local test_name
+  test_name="$1"
+
+  echo -e "${R}Test ${test_name} failed${E}"
+  return 1
+}
+
+test_upload() {
+  "${qs}" delete
+
+  output=$("${qs}" upload <(base64 -d <<< "${image}"))
+  [[ "${output}" =~ "Media uploaded" ]] || return 1
+}
+
+test_list() {
+  output=$("${qs}" list)
+  total=$(wc -l <<< "${output}" | awk '{print $1}')
+  head=$(head -1 <<< "${output}")
+  tail=$(tail -1 <<< "${output}")
+
+  [[ "${total}" -eq 2 ]] || return 1
+  [[ "${head}" =~ media_path.link.deletehash ]] || return 1
+  [[ -n "${tail}" ]] || return 1
+}
+
+test_delete() {
+  output=$("${qs}" delete)
+  [[ "${output}" =~ "upload removed" ]] || return 1
+}
+
+for test_name in test_upload test_list test_delete; do
+  echo "Running ${test_name}"
+  "${test_name}" || failure "${test_name}" || exit 1
+  success "${test_name}"
+done
