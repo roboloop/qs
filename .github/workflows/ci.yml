@@ -18,11 +18,16 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl jq libimage-exiftool-perl
+          sudo apt-get install -y curl jq libimage-exiftool-perl shellcheck
+
+      - name: Run linter
+        run: |
+          shellcheck qs qs_test install.sh
 
       - name: Run tests
         run: |
           ./qs_test
+
   macos:
     runs-on: macos-latest
     steps:
