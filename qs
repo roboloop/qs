@@ -12,8 +12,7 @@ error() {
 }
 
 error_help() {
-  local message
-  local help
+  local message help
 
   message="$1"
   help=$(cat <<EOF
@@ -23,7 +22,8 @@ Usage:
 
 The commands are:
 
-  upload     uploads media (filepath is required)
+  upload     uploads media (filepath/url is required)
+    --no-copy to skip copying the result link
   delete     deletes all media files
   list       prints all uploaded media
 
@@ -79,8 +79,7 @@ copy() {
 
 # Delete command removes
 delete() {
-  local media_path
-  local user_url
+  local media_path user_url
 
   while IFS=$'\t' read -r media_path link deletehash; do
     response=$(curl --silent --show-error --no-progress-meter --fail --location \
@@ -98,16 +97,26 @@ delete() {
 }
 
 upload() {
-  [[ $# -lt 1 ]] && error_help "File not passed"
+  local no_copy=
 
-  local media_path
-  local deletehash
-  local link
+  [[ $# -ge 1 && "${1}" == "--no-copy" ]] && no_copy=1 && shift
+  [[ $# -eq 0 ]] && error_help "File not passed"
+
+  local media_path deletehash link prepend
   media_path="$1"
 
+  if [[ "${media_path}" == https://* ]]; then
+    prepend="curl --silent --show-error --fail --location \"${media_path}\""
+  elif [[ -e "${media_path}" && -r ${media_path} ]]; then
+    prepend="cat \"${media_path}\""
+  else
+    error_help "File '${media_path}' not found"
+  fi
+
   response=$(
-    exiftool -all= -O - "${media_path}" \
-      | curl --silent --show-error --no-progress-meter --fail --location \
+    eval "${prepend}" | \
+    exiftool -all= -O - - \
+      | curl --silent --show-error --fail --location \
         --request 'POST' \
         --header "Authorization: Client-ID ${imgur_client_id}" \
         --header "User-Agent: " \
@@ -119,8 +128,9 @@ upload() {
   link=$(jq -r '.data.link' <<< "${response}")
   echo -e "${media_path}\t${link}\t${deletehash}" >> "${media_storage}"
 
-  echo "Media uploaded: ${link}"
-  (copy "${link}" && echo "Link copied!" && notify "Link copied!") || true
+  echo "Media uploaded!" 1>&2
+  echo "${link}"
+  ([[ -z "${no_copy}" ]] && copy "${link}" && echo "Link copied!" 1>&2 && notify "Link copied!") || true
 }
 
 list() {

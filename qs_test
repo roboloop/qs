@@ -29,7 +29,7 @@ failure() {
 test_upload() {
   "${qs}" delete
 
-  output=$("${qs}" upload <(base64 -d <<< "${image}"))
+  output=$("${qs}" upload <(base64 -d <<< "${image}") 2>&1 1>/dev/null)
   [[ "${output}" =~ "Media uploaded" ]] || return 1
 }
 

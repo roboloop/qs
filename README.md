@@ -38,7 +38,8 @@ Usage:
 
 The commands are:
 
-  upload     uploads media (filepath is required)
+  upload     uploads media (filepath/url is required)
+    --no-copy to skip copying the result link
   delete     deletes all media files
   list       prints all uploaded media
 
