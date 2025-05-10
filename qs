@@ -22,10 +22,10 @@ Usage:
 
 The commands are:
 
-  upload     uploads media (filepath/url is required)
+  upload      uploads media (filepath/url is required)
     --no-copy to skip copying the result link
-  delete     deletes all media files
-  list       prints all uploaded media
+  delete      deletes all media files
+  list        prints all uploaded media
 
 Other environments:
 
@@ -57,8 +57,7 @@ default_imgur_client_id=8aecfc6ca13a3ea
 imgur_client_id="${IMGUR_CLIENT_ID:=${default_imgur_client_id}}"
 
 notify() {
-  local text
-  text="$1"
+  local text="$1"
 
   (
     command -v notify-send && notify-send "${qs}" "${text}"
@@ -67,8 +66,7 @@ notify() {
 }
 
 copy() {
-  local text
-  text="$1"
+  local text="$1"
 
   echo -n "${text}" | (
     command -v xclip && xclip -selection clipboard && return
@@ -79,7 +77,7 @@ copy() {
 
 # Delete command removes
 delete() {
-  local media_path user_url
+  local media_path user_url response
 
   while IFS=$'\t' read -r media_path link deletehash; do
     response=$(curl --silent --show-error --no-progress-meter --fail --location \
@@ -102,7 +100,7 @@ upload() {
   [[ $# -ge 1 && "${1}" == "--no-copy" ]] && no_copy=1 && shift
   [[ $# -eq 0 ]] && error_help "File not passed"
 
-  local media_path deletehash link prepend
+  local media_path deletehash link prepend response
   media_path="$1"
 
   if [[ "${media_path}" == https://* ]]; then
