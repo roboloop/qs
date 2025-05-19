@@ -22,7 +22,7 @@ Usage:
 
 The commands are:
 
-  upload      uploads media (filepath/url is required)
+  upload      uploads media (filepath, url, or stdin media is accepted)
     --no-copy to skip copying the result link
   delete      deletes all media files
   list        prints all uploaded media
@@ -98,14 +98,14 @@ upload() {
   local no_copy=
 
   [[ $# -ge 1 && "${1}" == "--no-copy" ]] && no_copy=1 && shift
-  [[ $# -eq 0 ]] && error_help "File not passed"
+  [[ $# -eq 0 && -t 0 ]] && error_help "File not passed"
 
-  local media_path deletehash link prepend response
-  media_path="$1"
+  local deletehash link prepend response
+  local media_path="${1:--}"
 
   if [[ "${media_path}" == https://* ]]; then
     prepend="curl --silent --show-error --fail --location \"${media_path}\""
-  elif [[ -e "${media_path}" && -r ${media_path} ]]; then
+  elif [[ -e "${media_path}" && -r "${media_path}" || ! -t 0 ]]; then
     prepend="cat \"${media_path}\""
   else
     error_help "File '${media_path}' not found"

@@ -29,11 +29,21 @@ failure() {
 test_upload() {
   "${qs}" delete
 
+  local output
   output=$("${qs}" upload <(base64 -d <<< "${image}") 2>&1 1>/dev/null)
   [[ "${output}" =~ "Media uploaded" ]] || return 1
 }
 
+test_upload_stdin() {
+  "${qs}" delete
+
+  local output
+  output=$(base64 -d <<< "${image}" | "${qs}" upload 2>&1 1>/dev/null)
+  [[ "${output}" =~ "Media uploaded" ]] || return 1
+}
+
 test_list() {
+  local output total head tail
   output=$("${qs}" list)
   total=$(wc -l <<< "${output}" | awk '{print $1}')
   head=$(head -1 <<< "${output}")
@@ -45,11 +55,12 @@ test_list() {
 }
 
 test_delete() {
+  local output
   output=$("${qs}" delete)
   [[ "${output}" =~ "upload removed" ]] || return 1
 }
 
-for test_name in test_upload test_list test_delete; do
+for test_name in test_upload test_upload_stdin test_list test_delete; do
   echo "Running ${test_name}"
   "${test_name}" || failure "${test_name}" || exit 1
   success "${test_name}"
