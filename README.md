@@ -2,6 +2,8 @@
 
 Quickly share any media to Imgur via a shell script — keeping you as anonymous as possible.
 
+![preview.gif](./preview.gif)
+
 ## Features
 
 - Removes metadata before uploading
@@ -20,7 +22,7 @@ Quickly share any media to Imgur via a shell script — keeping you as anonymous
 1. Install in `$HOME/.qs`
 
    ```shell
-   curl -sL https://raw.githubusercontent.com/roboloop/qs/refs/heads/0.4.0/install.sh | bash
+   curl -sL https://raw.githubusercontent.com/roboloop/qs/refs/heads/main/install.sh | bash
    ```
 
 2. Make the program globally accessible by adding to the corresponding command to the shell-config
