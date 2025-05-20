@@ -18,7 +18,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl jq libimage-exiftool-perl shellcheck
+          sudo apt-get install -y curl libimage-exiftool-perl shellcheck
 
       - name: Run linter
         run: |
@@ -37,7 +37,7 @@ jobs:
       - name: Install Dependencies
         run: |
           brew update
-          brew install jq exiftool curl
+          brew install exiftool curl
 
       - name: Run tests
         run: |

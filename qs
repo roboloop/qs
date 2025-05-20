@@ -44,7 +44,6 @@ EOF
 
 # Check if all dependencies are in place
 command -v curl &> /dev/null || error "curl not found"
-command -v jq &> /dev/null || error "jq not found"
 command -v exiftool &> /dev/null || error "exiftool not found"
 
 # Define storage file for media
@@ -122,8 +121,8 @@ upload() {
         'https://api.imgur.com/3/image'
   )
 
-  deletehash=$(jq -r '.data.deletehash' <<< "${response}")
-  link=$(jq -r '.data.link' <<< "${response}")
+  deletehash=$(sed -E 's/^.+"deletehash":"([^"]+)".+$/\1/' <<< "${response}")
+  link=$(sed -E 's/^.+"link":"([^"]+)".+$/\1/' <<< "${response}")
   echo -e "${media_path}\t${link}\t${deletehash}" >> "${media_storage}"
 
   echo "Media uploaded!" 1>&2

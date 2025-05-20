@@ -14,7 +14,6 @@ Quickly share any media to Imgur via a shell script — keeping you as anonymous
 
 - OS Linux/MacOS
 - [curl](https://curl.se/)
-- [jq](https://github.com/jqlang/jq)
 - [exiftool](https://exiftool.org/)
 
 ## Setup
