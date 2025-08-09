@@ -44,7 +44,6 @@ EOF
 
 # Check if all dependencies are in place
 command -v curl &> /dev/null || error "curl not found"
-command -v exiftool &> /dev/null || error "exiftool not found"
 
 # Define storage file for media
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -74,6 +73,14 @@ copy() {
   ) &> /dev/null
 }
 
+format() {
+  if command -v column &> /dev/null; then
+    column -t -s $'\t'
+  else
+    cat
+  fi
+}
+
 # Delete command removes
 delete() {
   local media_path user_url response
@@ -86,9 +93,9 @@ delete() {
       "https://api.imgur.com/3/image/${deletehash}" || true
     )
     user_url="https://imgur.com/delete/${deletehash}"
-    [[ -z "${response}" ]] && echo "${media_path} (${user_url}) upload not removed" && continue
-    echo "${media_path} upload removed"
-  done < "${media_storage}"
+    [[ -z "${response}" ]] && echo -e "${media_path} (${user_url})\tupload not removed" && continue
+    echo -e "${media_path}\tupload removed"
+  done < "${media_storage}" | format
 
   echo -n > "${media_storage}"
 }
@@ -104,16 +111,25 @@ upload() {
 
   if [[ "${media_path}" == https://* ]]; then
     prepend="curl --silent --show-error --fail --location \"${media_path}\""
-  elif [[ -e "${media_path}" && -r "${media_path}" || ! -t 0 ]]; then
+  elif [[ -e "${media_path}" && -r "${media_path}" ]]; then
+    [[ -f "${media_path}" ]] && media_path="$(realpath "${media_path}")"
     prepend="cat \"${media_path}\""
+  elif [[ ! -t 0 ]]; then
+    media_path="<stdin>"
+    prepend="cat -"
   else
     error_help "File '${media_path}' not found"
   fi
 
+  if command -v exiftool &> /dev/null; then
+    prepend+=" | exiftool -all= -O - -"
+  else
+    echo "ExifTool not found, metadata removal skipped..." 1>&2
+  fi
+
   response=$(
     eval "${prepend}" | \
-    exiftool -all= -O - - \
-      | curl --silent --show-error --fail --location \
+      curl --silent --show-error --fail --location \
         --request 'POST' \
         --header "Authorization: Client-ID ${imgur_client_id}" \
         --header "User-Agent: " \
@@ -131,10 +147,12 @@ upload() {
 }
 
 list() {
-  echo -e "media_path\tlink\tdeletehash"
-  while IFS=$'\t' read -r media_path link deletehash; do
-    echo -e "${media_path}\t${link}\t${deletehash}"
-  done < "${media_storage}"
+  (
+    echo -e "media_path\tlink\tdeletehash"
+    while IFS=$'\t' read -r media_path link deletehash; do
+      echo -e "${media_path}\t${link}\t${deletehash}"
+    done < "${media_storage}"
+  ) | format
 }
 
 [[ $# -lt 1 ]] && error_help "No function passed"

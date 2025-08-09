@@ -50,7 +50,7 @@ test_list() {
   tail=$(tail -1 <<< "${output}")
 
   [[ "${total}" -eq 2 ]] || return 1
-  [[ "${head}" =~ media_path.link.deletehash ]] || return 1
+  [[ "${head}" =~ media_path.*link.*deletehash ]] || return 1
   [[ -n "${tail}" ]] || return 1
 }
 
